@@ -1,9 +1,9 @@
 /**
-******************************************************************************
-* @file    stm32c0316_discovery.c
-* @author  MCD Application Team
-* @brief   This file provides a set of firmware functions to manage Leds
-*          and joystick of STM32C0316-DK board (MB1716)
+  ******************************************************************************
+  * @file    stm32c0316_discovery.c
+  * @author  MCD Application Team
+  * @brief   This file provides a set of firmware functions to manage Leds
+  *          and joystick of STM32C0316-DK board (MB1716)
   ******************************************************************************
   * @attention
   *
@@ -19,10 +19,12 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32c0316_discovery.h"
-
+#if defined(__ICCARM__)
+#include <LowLevelIOInterface.h>
+#endif /* __ICCARM__ */
 /** @addtogroup BSP
- * @{
- */
+  * @{
+  */
 
 /** @addtogroup STM32C0316-DK
   * @brief This file provides firmware functions to manage Leds and joystick
@@ -79,6 +81,19 @@ static const IRQn_Type BUTTON_IRQn[BUTTONn] = {BUTTON_USER_EXTI_IRQn};
 static COM_TypeDef COM_ActiveLogPort = COM1;
 #endif /* USE_COM_LOG */
 
+#if defined(__ICCARM__)
+/* New definition from EWARM V9, compatible with EWARM8 */
+int iar_fputc(int ch);
+#define PUTCHAR_PROTOTYPE int iar_fputc(int ch)
+
+#elif defined (__CC_ARM) || defined(__ARMCC_VERSION)
+/* ARM Compiler 5/6 */
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+
+#elif defined(__GNUC__)
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#endif /* __ICCARM__ */
+
 #if (USE_BSP_COM_FEATURE > 0)
 #if (USE_HAL_UART_REGISTER_CALLBACKS == 1)
 static uint32_t IsComMspCbValid[COM_NBR] = {0};
@@ -86,9 +101,9 @@ static uint32_t IsComMspCbValid[COM_NBR] = {0};
 #endif /* USE_BSP_COM_FEATURE */
 
 #if (USE_BSP_JOY_FEATURE > 0)
-  #if (USE_HAL_ADC_REGISTER_CALLBACKS == 1)
-     static uint32_t IsJoyMspCbValid[JOY_NBR] = {0};
-  #endif
+#if (USE_HAL_ADC_REGISTER_CALLBACKS == 1)
+static uint32_t IsJoyMspCbValid[JOY_NBR] = {0};
+#endif
 static ADC_HandleTypeDef hjoy_adc;
 static void ADC_MspInit(ADC_HandleTypeDef *hadc);
 static void ADC_MspDeInit(ADC_HandleTypeDef *hadc);
@@ -143,14 +158,14 @@ int32_t BSP_LED_Init(Led_TypeDef Led)
   int32_t ret = BSP_ERROR_NONE;
   GPIO_InitTypeDef  gpio_init_structure;
 
-  if(Led != LED1)
+  if (Led != LED1)
   {
     ret = BSP_ERROR_WRONG_PARAM;
   }
   else
   {
-      /* Enable the LED1 GPIO clock */
-      LED1_GPIO_CLK_ENABLE();
+    /* Enable the LED1 GPIO clock */
+    LED1_GPIO_CLK_ENABLE();
 
     /* Configure the GPIO_LED pin */
     gpio_init_structure.Mode = GPIO_MODE_OUTPUT_PP;
@@ -176,7 +191,7 @@ int32_t BSP_LED_DeInit(Led_TypeDef Led)
   int32_t ret = BSP_ERROR_NONE;
   GPIO_InitTypeDef  gpio_init_structure;
 
-  if(Led != LED1)
+  if (Led != LED1)
   {
     ret = BSP_ERROR_WRONG_PARAM;
   }
@@ -202,7 +217,7 @@ int32_t BSP_LED_On(Led_TypeDef Led)
 {
   int32_t ret = BSP_ERROR_NONE;
 
-  if(Led != LED1)
+  if (Led != LED1)
   {
     ret = BSP_ERROR_WRONG_PARAM;
   }
@@ -225,7 +240,7 @@ int32_t BSP_LED_Off(Led_TypeDef Led)
 {
   int32_t ret = BSP_ERROR_NONE;
 
-  if(Led != LED1)
+  if (Led != LED1)
   {
     ret = BSP_ERROR_WRONG_PARAM;
   }
@@ -248,7 +263,7 @@ int32_t BSP_LED_Toggle(Led_TypeDef Led)
 {
   int32_t ret = BSP_ERROR_NONE;
 
-  if(Led != LED1)
+  if (Led != LED1)
   {
     ret = BSP_ERROR_WRONG_PARAM;
   }
@@ -271,13 +286,13 @@ int32_t BSP_LED_GetState(Led_TypeDef Led)
 {
   int32_t ret;
 
-  if(Led != LED1)
+  if (Led != LED1)
   {
     ret = BSP_ERROR_WRONG_PARAM;
   }
   else
   {
-    ret = (int32_t)HAL_GPIO_ReadPin (LED_PORT [Led], (uint16_t)LED_PIN [Led]);
+    ret = (int32_t)HAL_GPIO_ReadPin(LED_PORT [Led], (uint16_t)LED_PIN [Led]);
   }
 
   return ret;
@@ -519,11 +534,11 @@ int32_t BSP_COM_RegisterDefaultMspCallbacks(COM_TypeDef COM)
     __HAL_UART_RESET_HANDLE_STATE(&hcom_uart[COM]);
 
     /* Register default MspInit/MspDeInit Callback */
-    if(HAL_UART_RegisterCallback(&hcom_uart[COM], HAL_UART_MSPINIT_CB_ID, USART1_MspInit) != HAL_OK)
+    if (HAL_UART_RegisterCallback(&hcom_uart[COM], HAL_UART_MSPINIT_CB_ID, USART1_MspInit) != HAL_OK)
     {
       ret = BSP_ERROR_PERIPH_FAILURE;
     }
-    else if(HAL_UART_RegisterCallback(&hcom_uart[COM], HAL_UART_MSPDEINIT_CB_ID, USART1_MspDeInit) != HAL_OK)
+    else if (HAL_UART_RegisterCallback(&hcom_uart[COM], HAL_UART_MSPDEINIT_CB_ID, USART1_MspDeInit) != HAL_OK)
     {
       ret = BSP_ERROR_PERIPH_FAILURE;
     }
@@ -590,22 +605,31 @@ int32_t BSP_COM_SelectLogPort(COM_TypeDef COM)
   return BSP_ERROR_NONE;
 }
 
+#if defined(__ICCARM__)
+size_t __write(int file, unsigned char const *ptr, size_t len)
+{
+  size_t idx;
+  unsigned char const *pdata = ptr;
+
+  for (idx = 0; idx < len; idx++)
+  {
+    iar_fputc((int)*pdata);
+    pdata++;
+  }
+  return len;
+}
+#endif /* __ICCARM__ */
+
 /**
   * @brief  Redirect console output to COM
   */
-#ifdef __GNUC__
-int __io_putchar(int ch)
+
+PUTCHAR_PROTOTYPE
 {
   HAL_UART_Transmit(&hcom_uart [COM_ActiveLogPort], (uint8_t *) &ch, 1, COM_POLL_TIMEOUT);
   return ch;
 }
-#else
-size_t __write(int handle, const unsigned char * buffer, size_t size)
-{
-  HAL_UART_Transmit(&hcom_uart [COM_ActiveLogPort], (uint8_t *) buffer, size, COM_POLL_TIMEOUT);
-  return size;
-}
-#endif /* __GNUC__ */
+
 #endif /* USE_COM_LOG */
 #endif /* USE_BSP_COM_FEATURE */
 
@@ -624,11 +648,11 @@ size_t __write(int handle, const unsigned char * buffer, size_t size)
 int32_t BSP_JOY_Init(JOY_TypeDef JOY, JOYMode_TypeDef JoyMode, JOYPin_TypeDef JoyPins)
 {
   int32_t ret = BSP_ERROR_NONE;
-  
-   UNUSED(JoyMode); 
-   UNUSED(JoyPins);
-   
-  if(JOY >= JOYn)
+
+  UNUSED(JoyMode);
+  UNUSED(JoyPins);
+
+  if (JOY >= JOYn)
   {
     ret = BSP_ERROR_WRONG_PARAM;
   }
@@ -638,15 +662,15 @@ int32_t BSP_JOY_Init(JOY_TypeDef JOY, JOYMode_TypeDef JoyMode, JOYPin_TypeDef Jo
     /* Init the ADC Msp */
     ADC_MspInit(&hjoy_adc);
 #else
-    if(IsJoyMspCbValid[JOY] == 0U)
+    if (IsJoyMspCbValid[JOY] == 0U)
     {
-      if(BSP_JOY_RegisterDefaultMspCallbacks(JOY) != BSP_ERROR_NONE)
+      if (BSP_JOY_RegisterDefaultMspCallbacks(JOY) != BSP_ERROR_NONE)
       {
         return BSP_ERROR_MSP_FAILURE;
       }
     }
 #endif
-    if(MX_ADC_Init(&hjoy_adc) != HAL_OK)
+    if (MX_ADC_Init(&hjoy_adc) != HAL_OK)
     {
       ret = BSP_ERROR_PERIPH_FAILURE;
     }
@@ -658,16 +682,16 @@ int32_t BSP_JOY_Init(JOY_TypeDef JOY, JOYMode_TypeDef JoyMode, JOYPin_TypeDef Jo
 /**
   * @brief  De-Initialize the Potentiometer.
   * @param  JOY  Potentiometer to be activated.
-  * @param  JoyPins joystick pins to be de-initialized  
+  * @param  JoyPins joystick pins to be de-initialized
   * @retval BSP status
   */
 int32_t BSP_JOY_DeInit(JOY_TypeDef JOY, JOYPin_TypeDef JoyPins)
 {
   int32_t ret = BSP_ERROR_NONE;
 
-   UNUSED(JoyPins);
-   
-  if(JOY >= JOYn)
+  UNUSED(JoyPins);
+
+  if (JOY >= JOYn)
   {
     ret = BSP_ERROR_WRONG_PARAM;
   }
@@ -681,7 +705,7 @@ int32_t BSP_JOY_DeInit(JOY_TypeDef JOY, JOYPin_TypeDef JoyPins)
 
 #endif /* (USE_HAL_ADC_REGISTER_CALLBACKS == 0) */
 
-    if(HAL_ADC_DeInit(&hjoy_adc) != HAL_OK)
+    if (HAL_ADC_DeInit(&hjoy_adc) != HAL_OK)
     {
       ret = BSP_ERROR_PERIPH_FAILURE;
     }
@@ -694,11 +718,11 @@ int32_t BSP_JOY_DeInit(JOY_TypeDef JOY, JOYPin_TypeDef JoyPins)
   * @brief  Returns the current joystick status.
   * @param  JOY Joystick instance
   * @retval BSP error code if value is negative or one of the following values:
-  *            @arg  JOY_NONE  if voltage level is not one of below values 
+  *            @arg  JOY_NONE  if voltage level is not one of below values
   *            @arg  JOY_SEL   if voltage level is around  0 V / 0
   *            @arg  JOY_DOWN  if voltage level is between 1.32 V / 1638
   *            @arg  JOY_LEFT  if voltage level is between 0.67 V / 831
-  *            @arg  JOY_RIGHT if voltage level is between 2.65 V / 3288 
+  *            @arg  JOY_RIGHT if voltage level is between 2.65 V / 3288
   *            @arg  JOY_UP    if voltage level is between 2.01 V / 2494
   */
 int32_t BSP_JOY_GetState(JOY_TypeDef JOY)
@@ -706,49 +730,49 @@ int32_t BSP_JOY_GetState(JOY_TypeDef JOY)
   int32_t ret = BSP_ERROR_NONE;
   uint16_t key_converted_value = 0;
   uint32_t key_pressed;
-  
-  if(JOY >= JOYn)
+
+  if (JOY >= JOYn)
   {
     ret = BSP_ERROR_WRONG_PARAM;
   }
   else
   {
- /* Start the conversion process */
-  HAL_ADC_Start(&hjoy_adc);
-  
-  /* Wait for the end of conversion */
-  if (HAL_ADC_PollForConversion(&hjoy_adc, JOY_ADC_POLL_TIMEOUT) != HAL_TIMEOUT)
-  {
-    /* Get the converted value of regular channel */
-    key_converted_value = HAL_ADC_GetValue(&hjoy_adc);
+    /* Start the conversion process */
+    HAL_ADC_Start(&hjoy_adc);
+
+    /* Wait for the end of conversion */
+    if (HAL_ADC_PollForConversion(&hjoy_adc, JOY_ADC_POLL_TIMEOUT) != HAL_TIMEOUT)
+    {
+      /* Get the converted value of regular channel */
+      key_converted_value = HAL_ADC_GetValue(&hjoy_adc);
+    }
+    if ((key_converted_value > 2370) && (key_converted_value < 2618))
+    {
+      key_pressed = JOY_UP;
+    }
+    else if ((key_converted_value > 3000) && (key_converted_value < 3312))
+    {
+      key_pressed = JOY_RIGHT;
+    }
+    else if (key_converted_value < 10)
+    {
+      key_pressed = JOY_SEL;
+    }
+    else if ((key_converted_value > 1514) && (key_converted_value < 1762))
+    {
+      key_pressed = JOY_DOWN;
+    }
+    else if ((key_converted_value > 709) && (key_converted_value < 955))
+    {
+      key_pressed = JOY_LEFT;
+    }
+    else
+    {
+      key_pressed = JOY_NONE;
+    }
+    /* Return Code Joystick key pressed */
+    ret = (int32_t)key_pressed;
   }
-  if((key_converted_value > 2370) && (key_converted_value < 2618))
-  {
-    key_pressed = JOY_UP;
-  }
-  else if((key_converted_value > 3000) && (key_converted_value < 3312))
-  {
-    key_pressed = JOY_RIGHT;
-  }
-  else if(key_converted_value < 10)
-  {
-    key_pressed = JOY_SEL;
-  }
-  else if((key_converted_value > 1514) && (key_converted_value < 1762))
-  {
-    key_pressed = JOY_DOWN;
-  }
-  else if((key_converted_value > 709) && (key_converted_value < 955))
-  {
-    key_pressed = JOY_LEFT;
-  }
-  else
-  {
-    key_pressed = JOY_NONE;
-  }
-  /* Return Code Joystick key pressed */
-   ret = (int32_t)key_pressed;
-  }	  
 
   return (int32_t)ret;
 }
@@ -768,19 +792,19 @@ __weak HAL_StatusTypeDef MX_ADC_Init(ADC_HandleTypeDef *hadc)
   hadc->Init.ClockPrescaler        = ADC_CLOCK_SYNC_PCLK_DIV4;   /* ADC clock of STM32C0 must not exceed 14MHz        */
   hadc->Init.Resolution            = ADC_RESOLUTION_12B;
   hadc->Init.DataAlign             = ADC_DATAALIGN_RIGHT;
-  hadc->Init.ScanConvMode          = ADC_SCAN_DIRECTION_FORWARD; /* Sequencer will convert the number of channels 
-	                                     configured below, successively from the lowest to the highest channel number */
+  hadc->Init.ScanConvMode          = ADC_SCAN_DIRECTION_FORWARD; /* Sequencer will convert the number of channels
+                                       configured below, successively from the lowest to the highest channel number */
   hadc->Init.EOCSelection          = ADC_EOC_SINGLE_CONV;
   hadc->Init.LowPowerAutoWait      = DISABLE;
   hadc->Init.LowPowerAutoPowerOff  = DISABLE;
-  hadc->Init.ContinuousConvMode    = DISABLE;                    /* Continuous mode disabled to have only 1 
-	                                                                conversion at each conversion trig                */
+  hadc->Init.ContinuousConvMode    = DISABLE;                    /* Continuous mode disabled to have only 1
+                                                                  conversion at each conversion trig                */
   hadc->Init.NbrOfConversion       = 1;
   hadc->Init.DiscontinuousConvMode = DISABLE;                    /* Parameter discarded because sequencer is disabled */
-  hadc->Init.ExternalTrigConv      = ADC_SOFTWARE_START;         /* Software start to trig the 1st conversion 
-	                                                                          manually, without external event        */
-  hadc->Init.ExternalTrigConvEdge  = ADC_EXTERNALTRIGCONVEDGE_NONE; /* Parameter discarded because trig by 
-	                                                                          software start                          */
+  hadc->Init.ExternalTrigConv      = ADC_SOFTWARE_START;         /* Software start to trig the 1st conversion
+                                                                            manually, without external event        */
+  hadc->Init.ExternalTrigConvEdge  = ADC_EXTERNALTRIGCONVEDGE_NONE; /* Parameter discarded because trig by
+                                                                            software start                          */
   hadc->Init.DMAContinuousRequests = DISABLE;
   hadc->Init.Overrun               = ADC_OVR_DATA_OVERWRITTEN;
   hadc->Init.SamplingTimeCommon1   = ADC_SAMPLETIME_39CYCLES_5;
@@ -820,11 +844,11 @@ __weak HAL_StatusTypeDef MX_ADC_Init(ADC_HandleTypeDef *hadc)
   * @param JOY Potentiometer instance
   * @retval BSP status
   */
-int32_t BSP_JOY_RegisterDefaultMspCallbacks (JOY_TypeDef JOY)
+int32_t BSP_JOY_RegisterDefaultMspCallbacks(JOY_TypeDef JOY)
 {
   int32_t ret = BSP_ERROR_NONE;
 
-  if(JOY >= JOYn)
+  if (JOY >= JOYn)
   {
     ret = BSP_ERROR_WRONG_PARAM;
   }
@@ -833,11 +857,11 @@ int32_t BSP_JOY_RegisterDefaultMspCallbacks (JOY_TypeDef JOY)
     __HAL_ADC_RESET_HANDLE_STATE(&hjoy_adc);
 
     /* Register default MspInit/MspDeInit Callback */
-    if(HAL_ADC_RegisterCallback(&hjoy_adc, HAL_ADC_MSPINIT_CB_ID, ADC_MspInit) != HAL_OK)
+    if (HAL_ADC_RegisterCallback(&hjoy_adc, HAL_ADC_MSPINIT_CB_ID, ADC_MspInit) != HAL_OK)
     {
       ret = BSP_ERROR_PERIPH_FAILURE;
     }
-    else if(HAL_ADC_RegisterCallback(&hjoy_adc, HAL_ADC_MSPDEINIT_CB_ID, ADC_MspDeInit) != HAL_OK)
+    else if (HAL_ADC_RegisterCallback(&hjoy_adc, HAL_ADC_MSPDEINIT_CB_ID, ADC_MspDeInit) != HAL_OK)
     {
       ret = BSP_ERROR_PERIPH_FAILURE;
     }
@@ -857,11 +881,11 @@ int32_t BSP_JOY_RegisterDefaultMspCallbacks (JOY_TypeDef JOY)
   * @param Callbacks     pointer to Potentiometer MspInit/MspDeInit callback functions
   * @retval BSP status
   */
-int32_t BSP_JOY_RegisterMspCallbacks (JOY_TypeDef JOY, BSP_JOY_Cb_t *Callback)
+int32_t BSP_JOY_RegisterMspCallbacks(JOY_TypeDef JOY, BSP_JOY_Cb_t *Callback)
 {
   int32_t ret = BSP_ERROR_NONE;
 
-  if(JOY >= JOYn)
+  if (JOY >= JOYn)
   {
     ret = BSP_ERROR_WRONG_PARAM;
   }
@@ -870,11 +894,11 @@ int32_t BSP_JOY_RegisterMspCallbacks (JOY_TypeDef JOY, BSP_JOY_Cb_t *Callback)
     __HAL_ADC_RESET_HANDLE_STATE(&hjoy_adc);
 
     /* Register MspInit/MspDeInit Callbacks */
-    if(HAL_ADC_RegisterCallback(&hjoy_adc, HAL_ADC_MSPINIT_CB_ID, Callback->pMspInitCb) != HAL_OK)
+    if (HAL_ADC_RegisterCallback(&hjoy_adc, HAL_ADC_MSPINIT_CB_ID, Callback->pMspInitCb) != HAL_OK)
     {
       ret = BSP_ERROR_PERIPH_FAILURE;
     }
-    else if(HAL_ADC_RegisterCallback(&hjoy_adc, HAL_ADC_MSPDEINIT_CB_ID, Callback->pMspDeInitCb) != HAL_OK)
+    else if (HAL_ADC_RegisterCallback(&hjoy_adc, HAL_ADC_MSPDEINIT_CB_ID, Callback->pMspDeInitCb) != HAL_OK)
     {
       ret = BSP_ERROR_PERIPH_FAILURE;
     }

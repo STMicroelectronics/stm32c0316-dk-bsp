@@ -30,12 +30,8 @@ extern "C" {
 #include "stm32c0316_discovery_errno.h"
 
 #if (USE_BSP_COM_FEATURE > 0)
-  #if (USE_COM_LOG > 0)
-    #ifndef __GNUC__
-      #include "stdio.h"
-    #endif
-  #endif
-#endif
+#include <stdio.h>
+#endif /* USE_BSP_COM_FEATURE */
 /** @defgroup BSP BSP
   * @{
   */
@@ -75,24 +71,24 @@ typedef enum
 {
   JOY_MODE_GPIO = 0U,
   JOY_MODE_EXTI = 1U
-}JOYMode_TypeDef;
+} JOYMode_TypeDef;
 
 typedef enum
 {
   JOY1 = 0U,
   JOYn
-}JOY_TypeDef;
+} JOY_TypeDef;
 
 typedef enum
 {
- JOY_NONE  = 0x00U,
- JOY_SEL   = 0x01U,
- JOY_DOWN  = 0x02U,
- JOY_LEFT  = 0x04U,
- JOY_RIGHT = 0x08U,
- JOY_UP    = 0x10U,
- JOY_ALL   = 0x1FU
-}JOYPin_TypeDef;
+  JOY_NONE  = 0x00U,
+  JOY_SEL   = 0x01U,
+  JOY_DOWN  = 0x02U,
+  JOY_LEFT  = 0x04U,
+  JOY_RIGHT = 0x08U,
+  JOY_UP    = 0x10U,
+  JOY_ALL   = 0x1FU
+} JOYPin_TypeDef;
 #endif /* USE_BSP_JOY_FEATURE */
 
 #if (USE_HAL_ADC_REGISTER_CALLBACKS == 1)
@@ -100,7 +96,7 @@ typedef struct
 {
   void (* pMspInitCb)(ADC_HandleTypeDef *);
   void (* pMspDeInitCb)(ADC_HandleTypeDef *);
-}BSP_JOY_Cb_t;
+} BSP_JOY_Cb_t;
 #endif /* (USE_HAL_ADC_REGISTER_CALLBACKS == 1) */
 
 #if (USE_BSP_COM_FEATURE > 0)
@@ -172,16 +168,16 @@ typedef struct
 #endif /* USE_STM32C0316_DK */
 
 /**
-  * @brief STM32C0316_DK BSP Driver version number V1.0.0
+  * @brief STM32C0316_DK BSP Driver version number V1.0.1
   */
 #define STM32C0316_DK_BSP_VERSION_MAIN   (uint32_t)(0x01) /*!< [31:24] main version */
 #define STM32C0316_DK_BSP_VERSION_SUB1   (uint32_t)(0x00) /*!< [23:16] sub1 version */
-#define STM32C0316_DK_BSP_VERSION_SUB2   (uint32_t)(0x00) /*!< [15:8]  sub2 version */
+#define STM32C0316_DK_BSP_VERSION_SUB2   (uint32_t)(0x01) /*!< [15:8]  sub2 version */
 #define STM32C0316_DK_BSP_VERSION_RC     (uint32_t)(0x00) /*!< [7:0]  release candidate */
 #define STM32C0316_DK_BSP_VERSION        ((STM32C0316_DK_BSP_VERSION_MAIN << 24)\
-                                           |(STM32C0316_DK_BSP_VERSION_SUB1 << 16)\
-                                           |(STM32C0316_DK_BSP_VERSION_SUB2 << 8 )\
-                                           |(STM32C0316_DK_BSP_VERSION_RC))
+                                          |(STM32C0316_DK_BSP_VERSION_SUB1 << 16)\
+                                          |(STM32C0316_DK_BSP_VERSION_SUB2 << 8 )\
+                                          |(STM32C0316_DK_BSP_VERSION_RC))
 
 #define STM32C0316_DK_BSP_BOARD_NAME  "STM32C0316-DK";
 #define STM32C0316_DK_BSP_BOARD_ID    "MB1716A";
@@ -310,7 +306,7 @@ typedef struct
 /**
   * @}
   */
-  
+
 /**
   * @}
   */
@@ -364,7 +360,7 @@ HAL_StatusTypeDef MX_USART6_Init(UART_HandleTypeDef *huart, MX_UART_InitTypeDef 
 #if (USE_BSP_JOY_FEATURE > 0)
 int32_t  BSP_JOY_Init(JOY_TypeDef JOY, JOYMode_TypeDef JoyMode,  JOYPin_TypeDef JoyPins);
 int32_t  BSP_JOY_DeInit(JOY_TypeDef JOY,  JOYPin_TypeDef JoyPins);
-int32_t  BSP_JOY_GetState(JOY_TypeDef JOY);	
+int32_t  BSP_JOY_GetState(JOY_TypeDef JOY);
 #endif /* USE_BSP_JOY_FEATURE */
 /**
   * @}
